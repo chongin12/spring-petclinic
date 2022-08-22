@@ -59,6 +59,11 @@ public class Owner extends Person {
 	@Digits(fraction = 0, integer = 10)
 	private String telephone;
 
+	@Column(name = "age")
+	@NotEmpty
+	@Digits(fraction = 0, integer = 3)
+	private String age;
+
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn(name = "owner_id")
 	@OrderBy("name")
@@ -88,6 +93,10 @@ public class Owner extends Person {
 		this.telephone = telephone;
 	}
 
+	public String getAge() { return this.age; }
+
+	public void setAge(String age) { this.age = age; }
+
 	public List<Pet> getPets() {
 		return this.pets;
 	}
@@ -109,7 +118,7 @@ public class Owner extends Person {
 
 	/**
 	 * Return the Pet with the given id, or null if none found for this Owner.
-	 * @param name to test
+	 * @param id to test
 	 * @return a pet if pet id is already in use
 	 */
 	public Pet getPet(Integer id) {
@@ -148,6 +157,7 @@ public class Owner extends Person {
 		return new ToStringCreator(this).append("id", this.getId()).append("new", this.isNew())
 				.append("lastName", this.getLastName()).append("firstName", this.getFirstName())
 				.append("address", this.address).append("city", this.city).append("telephone", this.telephone)
+				.append("age", this.age)
 				.toString();
 	}
 

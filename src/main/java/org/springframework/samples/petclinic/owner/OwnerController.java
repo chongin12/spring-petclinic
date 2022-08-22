@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,8 +49,11 @@ class OwnerController {
 
 	private final OwnerRepository owners;
 
-	public OwnerController(OwnerRepository clinicService) {
+	private final PetRepository petRepository;
+
+	public OwnerController(OwnerRepository clinicService, PetRepository petRepository) {
 		this.owners = clinicService;
+		this.petRepository = petRepository;
 	}
 
 	@InitBinder
@@ -91,25 +95,28 @@ class OwnerController {
 			Model model) {
 
 		// allow parameterless GET request for /owners to return all records
-		if (owner.getLastName() == null) {
-			owner.setLastName(""); // empty string signifies broadest possible search
+		if (owner.getFirstName() == null) {
+			owner.setFirstName(""); // empty string signifies broadest possible search
 		}
 
 		// find owners by last name
 		Page<Owner> ownersResults = findPaginatedForOwnersLastName(page, owner.getLastName());
-		if (ownersResults.isEmpty()) {
+
+		// find owners by first name
+		Page<Owner> ownersResultsFirstName = findPaginatedForOwnersFirstName(page, owner.getFirstName());
+		if (ownersResultsFirstName.isEmpty()) {
 			// no owners found
-			result.rejectValue("lastName", "notFound", "not found");
+			result.rejectValue("firstName", "notFound", "not found");
 			return "owners/findOwners";
 		}
-		else if (ownersResults.getTotalElements() == 1) {
+		else if (ownersResultsFirstName.getTotalElements() == 1) {
 			// 1 owner found
-			owner = ownersResults.iterator().next();
+			owner = ownersResultsFirstName.iterator().next();
 			return "redirect:/owners/" + owner.getId();
 		}
 		else {
 			// multiple owners found
-			return addPaginationModel(page, model, ownersResults);
+			return addPaginationModel(page, model, ownersResultsFirstName);
 		}
 	}
 
@@ -128,6 +135,14 @@ class OwnerController {
 		int pageSize = 5;
 		Pageable pageable = PageRequest.of(page - 1, pageSize);
 		return owners.findByLastName(lastname, pageable);
+
+	}
+
+	private Page<Owner> findPaginatedForOwnersFirstName(int page, String firstname) {
+
+		int pageSize = 5;
+		Pageable pageable = PageRequest.of(page - 1, pageSize);
+		return owners.findByFirstName(firstname, pageable);
 
 	}
 
